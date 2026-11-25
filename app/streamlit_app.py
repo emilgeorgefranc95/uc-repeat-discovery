@@ -595,8 +595,8 @@ def render_page_overview(
     st.subheader("Sources & Volumes")
     src_df = pd.DataFrame(active_sources)
     tagged_by_src = df_tagged["source"].value_counts().to_dict()
-    src_df["tagged"] = src_df["source"].map(lambda s: tagged_by_src.get(s, "Context PDF" if s == "uc_filings" else 0))
-    src_df["relevant"] = src_df["source"].map(lambda s: rel_by_src.get(s, "Context PDF" if s == "uc_filings" else 0))
+    src_df["tagged"] = src_df["source"].map(lambda s: "Context PDF" if s == "uc_filings" else f"{tagged_by_src.get(s, 0):,}")
+    src_df["relevant"] = src_df["source"].map(lambda s: "Context PDF" if s == "uc_filings" else f"{rel_by_src.get(s, 0):,}")
     st.dataframe(
         src_df[["label", "pulled", "stage1_kept", "clean", "tagged", "relevant", "date_range", "notes"]].rename(
             columns={"label": "Source", "pulled": "Pulled", "stage1_kept": "Stage 1 Kept", "clean": "Clean", "tagged": "Tagged", "relevant": "Relevant", "date_range": "Date Coverage", "notes": "Bias / Method Notes"}
@@ -610,9 +610,9 @@ def render_page_overview(
         st.subheader("Models Used Across Stages")
         model_rows = []
         for m, cnt in summary["models_used"]["stage3_filter"].items():
-            model_rows.append({"Stage": "Stage 3: Relevance Filter", "Model": m, "Items": cnt})
+            model_rows.append({"Stage": "Stage 3: Relevance Filter", "Model": m, "Items": f"{cnt:,}"})
         for m, cnt in df_tagged["tagged_by"].value_counts().items():
-            model_rows.append({"Stage": "Stage 4: Structured Tagger", "Model": m, "Items": int(cnt)})
+            model_rows.append({"Stage": "Stage 4: Structured Tagger", "Model": m, "Items": f"{int(cnt):,}"})
         model_rows.append({"Stage": "Filings Synthesis (Q3 FY26–Q2 FY27)", "Model": "openai/gpt-oss-120b", "Items": "8 PDFs (401 passages)"})
         model_rows.append({"Stage": "Stage 6: Semantic RAG Retrieval", "Model": EMBED_MODEL_NAME, "Items": f"{len(df_rel):,} embedded"})
         st.dataframe(pd.DataFrame(model_rows), use_container_width=True, hide_index=True)
