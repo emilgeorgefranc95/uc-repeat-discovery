@@ -1,0 +1,282 @@
+{
+  "data_as_of": "2026-11-25 12:54 UTC",
+  "data_as_of_date": "25 Nov 2026",
+  "definitions": {
+    "tagged": "Unique posts with valid Stage 4 codebook schema output (tag_status == 'ok').",
+    "relevant": "Tagged posts marked is_relevant == 'yes' AND excluding InstaHelp (service_category != 'instahelp_excluded')."
+  },
+  "counts": {
+    "pulled_raw_total": 32769,
+    "stage1_kept_total": 8702,
+    "instahelp_excluded_stage1": 1031,
+    "clean_total": 8666,
+    "dropped_stage2": 36,
+    "filtered_total": 8666,
+    "filtered_yes_or_unsure": 5110,
+    "tagged_valid": 5110,
+    "tagged_failed": 0,
+    "relevant_final": 4925,
+    "instahelp_excluded_stage4": 142,
+    "staff_replies_excluded_stage2": 1,
+    "staff_replies_excluded_export": 0,
+    "human_corrections_applied": 9
+  },
+  "rule_fixes_applied": {
+    "stopped_fine_on_failed_reclassified": 111,
+    "customer_scope_on_pure_supply_reclassified": 40
+  },
+  "subtheme_counts": {
+    "booking_or_slot_scheduling_friction": {
+      "ai_chatbot_and_support_dead_ends": 572,
+      "slot_unavailability_and_unserved_areas": 350,
+      "involuntary_rescheduling_and_cancel_fees": 389,
+      "app_ux_cart_minimums_and_booking_limits": 351,
+      "other_booking_friction": 226,
+      "partner_cancellation_or_no_show_supply": 28
+    },
+    "unclear_scope_or_surprise_addons": {
+      "surprise_addons_hidden_fees_and_upselling": 462,
+      "unclear_inclusions_exclusions_and_warranty": 201,
+      "other_scope_clarity": 156
+    }
+  },
+  "sources_stage1": [
+    {
+      "source": "play_store",
+      "label": "Google Play Store (Urban Company)",
+      "pulled": 30000,
+      "stage1_kept": 7193,
+      "clean": 7190,
+      "date_range": "2018–2026",
+      "notes": "Balanced 6,000/star (1★–5★) to counter Bias #1; 937 InstaHelp excluded"
+    },
+    {
+      "source": "app_store",
+      "label": "Apple App Store (India RSS)",
+      "pulled": 500,
+      "stage1_kept": 136,
+      "clean": 136,
+      "date_range": "2026–2026",
+      "notes": "Official iTunes RSS feed; 54 InstaHelp excluded"
+    },
+    {
+      "source": "youtube",
+      "label": "YouTube Comments (UC & Home Services)",
+      "pulled": 1789,
+      "stage1_kept": 673,
+      "clean": 642,
+      "date_range": "2021–2026",
+      "notes": "42 videos across 8 queries (8.42% daily quota); counters Bias #2"
+    },
+    {
+      "source": "reddit",
+      "label": "Reddit (Indian City & Household Subs)",
+      "pulled": 480,
+      "stage1_kept": 700,
+      "clean": 698,
+      "date_range": "2021–2026",
+      "notes": "Open-source Agent Reach ($0.00); 338 threads, 0 username leaks; counters Bias #2"
+    },
+    {
+      "source": "trustpilot",
+      "label": "Trustpilot (Review Forum)",
+      "pulled": 0,
+      "stage1_kept": 0,
+      "clean": 0,
+      "date_range": "—",
+      "notes": "Blocked by HTTP 403 anti-bot gate; stopped without bypassing"
+    },
+    {
+      "source": "uc_filings",
+      "label": "UC Shareholder Letters & Transcripts",
+      "pulled": 8,
+      "stage1_kept": 401,
+      "clean": 401,
+      "date_range": "Q3 FY26–Q2 FY27",
+      "notes": "8 PDFs (243 pages) kept separate from customer review counts"
+    }
+  ],
+  "models_used": {
+    "stage3_filter": {
+      "openai/gpt-oss-20b": 1350,
+      "gemini-3.1-flash-lite": 7316
+    },
+    "stage4_tagger": {
+      "openai/gpt-oss-120b": 320,
+      "qwen/qwen3.8-27b": 152,
+      "gemini-3.1-flash-lite": 4638
+    },
+    "filings_synthesis": {
+      "openai/gpt-oss-120b": 4
+    },
+    "embeddings": "BAAI/bge-small-en-v1.5"
+  },
+  "quote_verification": {
+    "hidden_low_score": 64,
+    "exact": 4837,
+    "repaired": 209
+  },
+  "inter_model_check": {
+    "model_a": "openai/gpt-oss-120b",
+    "model_b": "qwen/qwen3.8-27b",
+    "items_compared": 30,
+    "qwen_valid": 30,
+    "qwen_failed": 0,
+    "qwen_tokens": 9351,
+    "qwen_quote_status": {
+      "exact": 30
+    },
+    "avg_core_field_agreement_pct": 76.1,
+    "field_by_field_agreement": {
+      "is_relevant": {
+        "exact_match": 27,
+        "total": 30,
+        "pct": 90.0
+      },
+      "service_category": {
+        "exact_match": 22,
+        "total": 30,
+        "pct": 73.3
+      },
+      "booking_outcome": {
+        "exact_match": 24,
+        "total": 30,
+        "pct": 80.0
+      },
+      "repeat_behavior": {
+        "exact_match": 23,
+        "total": 30,
+        "pct": 76.7
+      },
+      "scope_controllability": {
+        "exact_match": 17,
+        "total": 30,
+        "pct": 56.7
+      },
+      "external_alternative": {
+        "exact_match": 25,
+        "total": 30,
+        "pct": 83.3
+      },
+      "need_trigger": {
+        "exact_match": 20,
+        "total": 30,
+        "pct": 66.7
+      },
+      "emotion": {
+        "exact_match": 24,
+        "total": 30,
+        "pct": 80.0
+      },
+      "severity": {
+        "exact_match": 22,
+        "total": 30,
+        "pct": 73.3
+      },
+      "segment_proxy": {
+        "exact_match": 27,
+        "total": 30,
+        "pct": 90.0
+      },
+      "repeat_barriers_or_drivers": {
+        "overlap_ge_1": 23,
+        "overlap_pct": 76.7,
+        "avg_jaccard_pct": 53.9,
+        "total": 30
+      },
+      "brief_questions": {
+        "overlap_ge_1": 6,
+        "overlap_pct": 20.0,
+        "avg_jaccard_pct": 10.0,
+        "total": 30
+      }
+    }
+  },
+  "golden_set": {
+    "status": "pending_stage_8",
+    "items_labelled": 0
+  },
+  "human_corrections": [
+    {
+      "id": "play_store_65eab6da1d348d07",
+      "field": "scope_controllability",
+      "old_value": "customer_side_product",
+      "correct_value": "supply_partner_execution",
+      "reason": "Review explicitly says app is easy to use; only complaint is cleaner lateness (supply execution)",
+      "reviewer": "fellow_audit",
+      "date": "2026-11-25"
+    },
+    {
+      "id": "play_store_65eab6da1d348d07",
+      "field": "repeat_barriers_or_drivers",
+      "old_value": "booking_or_slot_scheduling_friction",
+      "correct_value": "service_quality_or_partner_failure,convenience_standardization_driver",
+      "reason": "App praised as easy; partner lateness is supply reliability not scheduling UX",
+      "reviewer": "fellow_audit",
+      "date": "2026-11-25"
+    },
+    {
+      "id": "play_store_f613755131c6f822",
+      "field": "scope_controllability",
+      "old_value": "customer_side_product",
+      "correct_value": "supply_partner_execution",
+      "reason": "Earlier partner no-show/no-contact forced reschedule; partner reliability issue",
+      "reviewer": "fellow_audit",
+      "date": "2026-11-25"
+    },
+    {
+      "id": "play_store_f613755131c6f822",
+      "field": "booking_outcome",
+      "old_value": "service_failed_or_cancelled",
+      "correct_value": "completed_with_friction",
+      "reason": "Rescheduled booking was completed with very professional and polite service",
+      "reviewer": "fellow_audit",
+      "date": "2026-11-25"
+    },
+    {
+      "id": "play_store_f613755131c6f822",
+      "field": "repeat_barriers_or_drivers",
+      "old_value": "booking_or_slot_scheduling_friction",
+      "correct_value": "service_quality_or_partner_failure,hygiene_and_professionalism_driver",
+      "reason": "No-show was partner failure; replacement pro praised for professionalism",
+      "reviewer": "fellow_audit",
+      "date": "2026-11-25"
+    },
+    {
+      "id": "reddit_post_72073374efe79811",
+      "field": "need_trigger",
+      "old_value": "routine_maintenance",
+      "correct_value": "seasonal_or_festival",
+      "reason": "Post explicitly states 'Summer season is about to begin' as AC servicing trigger",
+      "reviewer": "fellow_audit",
+      "date": "2026-11-25"
+    },
+    {
+      "id": "reddit_post_72073374efe79811",
+      "field": "repeat_barriers_or_drivers",
+      "old_value": "booking_or_slot_scheduling_friction",
+      "correct_value": "trust_safety_or_home_privacy",
+      "reason": "First-time pre-booking quality inquiry rather than scheduling friction",
+      "reviewer": "fellow_audit",
+      "date": "2026-11-25"
+    },
+    {
+      "id": "youtube_981efb83840d3375",
+      "field": "repeat_barriers_or_drivers",
+      "old_value": "unclear_scope_or_surprise_addons",
+      "correct_value": "unclear",
+      "reason": "Short Diwali trial intent ('M bhi is diwali pr try karugi urban..') mentions no scope/addon issue",
+      "reviewer": "fellow_audit",
+      "date": "2026-11-25"
+    },
+    {
+      "id": "reddit_comment_8164d35a1f679c69",
+      "field": "repeat_behavior",
+      "old_value": "stopped_despite_fine_experience",
+      "correct_value": "active_repeater",
+      "reason": "Comment describes maintaining a second UC account to keep using pay-after-service",
+      "reviewer": "fellow_audit",
+      "date": "2026-11-25"
+    }
+  ]
+}

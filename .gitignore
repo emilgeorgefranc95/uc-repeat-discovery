@@ -1,0 +1,25 @@
+# Secrets & local private files
+.env
+antigravity.md
+CLAUDE.md
+NL_Proj_Urban_company_brief.md
+Urban Company public shareholder letters : earnings-call transcripts/
+*.pdf
+
+# Python environment & caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Raw, intermediate, and review data (keep data/export/ and data/manual/corrections.csv trackable)
+data/raw/
+data/processed/
+data/review/
+data/cache/
+
+# OS & editor files
+.DS_Store
+.vscode/
+*.log

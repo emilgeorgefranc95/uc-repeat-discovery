@@ -1,0 +1,327 @@
+# Configuration for the Urban Company 90-Day Repeat Discovery Engine
+project:
+  name: "urban-company-repeat-discovery"
+  anchor_metric: "90-day repeat booking rate after a completed core-category anchor booking"
+  min_words_after_filter: 6
+  exclude_instahelp: true
+
+# Keyword filter used during Stage 1 collection to keep substantive home-service
+# and repeat-behavior posts mapped to all 8 discovery questions in the brief.
+keywords:
+  # Broad service anchors (Stage 3 AI filter removes passing mentions later)
+  broad_service_anchors:
+    - "urban company services"
+    - "urban company service"
+    - "uc services"
+    - "uc service"
+    - "home services"
+    - "home service"
+
+  # Q1: Post-booking expectations & post-service care
+  post_booking_expectations:
+    - "warranty"
+    - "follow up"
+    - "followup"
+    - "reminder"
+    - "after service"
+    - "post service"
+    - "after booking"
+    - "after finishing"
+    - "after work"
+    - "inspection"
+    - "check after"
+    - "invoice"
+    - "exclusion"
+    - "excluded"
+    - "rate card"
+
+  # Q2: Need triggers & timing (how/when households decide a service is needed)
+  need_triggers_and_timing:
+    - "every month"
+    - "monthly"
+    - "quarterly"
+    - "once a year"
+    - "every 3 months"
+    - "every 6 months"
+    - "schedule"
+    - "reschedule"
+    - "slot"
+    - "regular"
+    - "routine"
+    - "maintenance"
+    - "summer"
+    - "monsoon"
+    - "diwali"
+    - "festival"
+    - "festive"
+    - "guests"
+    - "shifting"
+    - "moving"
+    - "emergency"
+    - "urgent"
+    - "stopped working"
+    - "weekend"
+
+  # Q3 & Q4 & Q6: Repeat vs non-repeat, same/different category, returners vs non-returners
+  repeat_and_behavior:
+    - "again"
+    - "rebook"
+    - "repeat"
+    - "second time"
+    - "first time"
+    - "next time"
+    - "last time"
+    - "last booking"
+    - "previous"
+    - "same professional"
+    - "same technician"
+    - "same beautician"
+    - "same cleaner"
+    - "same plumber"
+    - "same guy"
+    - "same person"
+    - "preferred"
+    - "favorite"
+    - "favourite"
+    - "other service"
+    - "another service"
+    - "different service"
+    - "multiple services"
+    - "also booked"
+    - "stopped using"
+    - "never again"
+    - "won't book"
+    - "not booking"
+    - "uninstalled"
+    - "deleted"
+    - "switched"
+    - "switched back"
+    - "cancel"
+    - "for years"
+    - "loyal"
+    - "always use"
+    - "go-to"
+    - "used to be"
+    - "only use"
+    - "only for"
+    - "rarely"
+    - "occasionally"
+    - "once in a while"
+    - "worth it"
+    - "not worth"
+    - "reliable"
+    - "trust"
+    - "feel safe"
+    - "unsafe"
+    - "safety"
+    - "convenient"
+    - "membership"
+    - "uc plus"
+    - "plus membership"
+    - "discount"
+    - "coupon"
+    - "expensive"
+    - "overpriced"
+    - "hidden charge"
+    - "extra charge"
+    - "addon"
+    - "add-on"
+
+  # Q5: Outside-app alternatives (local providers, neighbours, family, WhatsApp)
+  external_alternatives:
+    - "local"
+    - "offline"
+    - "book directly"
+    - "call directly"
+    - "hire directly"
+    - "whatsapp"
+    - "neighbour"
+    - "neighbor"
+    - "society"
+    - "mygate"
+    - "nobroker"
+    - "justdial"
+    - "watchman"
+    - "guard"
+    - "local maid"
+    - "regular maid"
+    - "permanent maid"
+    - "parlour"
+    - "parlor"
+    - "family"
+    - "parents"
+    - "diy"
+    - "myself"
+    - "took his number"
+    - "contact number"
+
+  # Q7: Service categories, cities, household types & discovery channel
+  core_categories:
+    - "salon"
+    - "waxing"
+    - "facial"
+    - "haircut"
+    - "massage"
+    - "spa"
+    - "grooming"
+    - "deep clean"
+    - "deep cleaning"
+    - "bathroom clean"
+    - "kitchen clean"
+    - "sofa clean"
+    - "home cleaning"
+    - "ac service"
+    - "ac repair"
+    - "air conditioner"
+    - "washing machine"
+    - "fridge"
+    - "refrigerator"
+    - "geyser"
+    - "ro service"
+    - "ro repair"
+    - "water purifier service"
+    - "microwave"
+    - "appliance"
+    - "plumber"
+    - "plumbing"
+    - "electrician"
+    - "carpenter"
+    - "pest control"
+    - "cockroach"
+    - "painting"
+
+  segments_and_cities:
+    - "bachelor"
+    - "flatmate"
+    - "working couple"
+    - "working professional"
+    - "elderly"
+    - "aged"
+    - "kids"
+    - "tenant"
+    - "rented"
+    - "bangalore"
+    - "bengaluru"
+    - "mumbai"
+    - "delhi"
+    - "gurgaon"
+    - "gurugram"
+    - "noida"
+    - "hyderabad"
+    - "pune"
+    - "chennai"
+    - "kolkata"
+    - "recommended"
+    - "referral"
+    - "friend told"
+
+  # Q8: Unmet needs & product clarity gaps
+  unmet_needs:
+    - "should have"
+    - "should mention"
+    - "transparent"
+    - "notify"
+    - "notification"
+    - "no option"
+    - "only option"
+
+  # Quick-service housekeeping terms (EXCLUDED per brief when exclude_instahelp: true)
+  instahelp_terms:
+    - "instahelp"
+    - "insta help"
+    - "insta house help"
+    - "instant help"
+    - "house help"
+    - "househelp"
+    - "houshelp"
+    - "helper service"
+    - "insta maid"
+    - "15 min maid"
+    - "10 min maid"
+    - "15 min help"
+    - "10 min help"
+    - "instant maid"
+    - "quick help"
+
+  # Urban Company Native hardware products (KEPT & FLAGGED so spillover insights aren't lost)
+  native_hardware_terms:
+    - "native ro"
+    - "ro native"
+    - "native water purifier"
+    - "native purifier"
+    - "native lock"
+    - "smart lock"
+    - "native m1"
+    - "native m2"
+    - "native m3"
+    - "m1 pro"
+    - "m2 pro"
+    - "m3 pro"
+
+sources:
+  play_store:
+    enabled: true
+    app_id: "com.urbanclap.urbanclap"
+    lang: "en"
+    country: "in"
+    max_reviews: 30000
+    # Pull balanced reviews across star ratings to counter Bias #1 (1-star dominance)
+    balanced_by_rating: true
+    sort: "newest"
+    output_file: "data/raw/play_store.jsonl"
+
+  app_store:
+    enabled: true
+    app_id: "1032480595"
+    country: "in"
+    max_pages: 10
+    output_file: "data/raw/app_store.jsonl"
+
+  trustpilot:
+    enabled: true
+    domain: "www.urbancompany.com"
+    max_pages: 25
+    output_file: "data/raw/trustpilot.jsonl"
+
+  youtube:
+    enabled: true
+    region_code: "IN"
+    relevance_language: "en"
+    max_videos_per_query: 6
+    max_comments_per_video: 100
+    # Mix of Urban Company reviews AND general Indian home-service discussions (counters Bias #2)
+    queries:
+      - "Urban Company review India"
+      - "Urban Company deep cleaning review"
+      - "Urban Company AC service review"
+      - "Urban Company salon at home review"
+      - "home deep cleaning service India experience"
+      - "AC service at home India local vs Urban Company"
+      - "salon at home vs parlour India"
+      - "bathroom deep cleaning Urban Company"
+    output_file: "data/raw/youtube.jsonl"
+
+  # Stage 5 (built later in Prompt 7 using Apify within $3.50 budget cap)
+  reddit:
+    enabled: false
+    budget_usd: 3.50
+    subreddits:
+      - "bangalore"
+      - "mumbai"
+      - "delhi"
+      - "hyderabad"
+      - "pune"
+      - "india"
+      - "chennai"
+      - "TwoXIndia"
+      - "gurgaon"
+    queries:
+      - "Urban Company"
+      - "Urban Company worth it"
+      - "Urban Company vs local"
+      - "Urban Company AC service"
+      - "Urban Company deep cleaning"
+      - "Urban Company salon"
+      - "plumber electrician Urban Company"
+    manual_threads_file: "data/manual/reddit_threads.txt"
+    output_file: "data/raw/reddit.jsonl"

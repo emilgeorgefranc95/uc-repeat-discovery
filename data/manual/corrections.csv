@@ -1,0 +1,10 @@
+id,field,old_value,correct_value,reason,reviewer,date
+play_store_65eab6da1d348d07,scope_controllability,customer_side_product,supply_partner_execution,"Review explicitly says app is easy to use; only complaint is cleaner lateness (supply execution)",fellow_audit,2026-11-25
+play_store_65eab6da1d348d07,repeat_barriers_or_drivers,booking_or_slot_scheduling_friction,"service_quality_or_partner_failure,convenience_standardization_driver","App praised as easy; partner lateness is supply reliability not scheduling UX",fellow_audit,2026-11-25
+play_store_f613755131c6f822,scope_controllability,customer_side_product,supply_partner_execution,"Earlier partner no-show/no-contact forced reschedule; partner reliability issue",fellow_audit,2026-11-25
+play_store_f613755131c6f822,booking_outcome,service_failed_or_cancelled,completed_with_friction,"Rescheduled booking was completed with very professional and polite service",fellow_audit,2026-11-25
+play_store_f613755131c6f822,repeat_barriers_or_drivers,booking_or_slot_scheduling_friction,"service_quality_or_partner_failure,hygiene_and_professionalism_driver","No-show was partner failure; replacement pro praised for professionalism",fellow_audit,2026-11-25
+reddit_post_72073374efe79811,need_trigger,routine_maintenance,seasonal_or_festival,"Post explicitly states 'Summer season is about to begin' as AC servicing trigger",fellow_audit,2026-11-25
+reddit_post_72073374efe79811,repeat_barriers_or_drivers,booking_or_slot_scheduling_friction,trust_safety_or_home_privacy,"First-time pre-booking quality inquiry rather than scheduling friction",fellow_audit,2026-11-25
+youtube_981efb83840d3375,repeat_barriers_or_drivers,unclear_scope_or_surprise_addons,unclear,"Short Diwali trial intent ('M bhi is diwali pr try karugi urban..') mentions no scope/addon issue",fellow_audit,2026-11-25
+reddit_comment_8164d35a1f679c69,repeat_behavior,stopped_despite_fine_experience,active_repeater,"Comment describes maintaining a second UC account to keep using pay-after-service",fellow_audit,2026-11-25

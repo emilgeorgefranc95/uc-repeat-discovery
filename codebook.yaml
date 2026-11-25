@@ -1,0 +1,149 @@
+# Fixed Tagging Codebook for Stage 4 (pipeline/tag.py)
+# Every relevant post is tagged with this exact schema so opportunity areas can be
+# quantified, compared across sources, and audited in the AI Evidence Log.
+
+version: "1.0"
+
+fields:
+  is_relevant:
+    description: "Whether the post contains usable insight about Urban Company or Indian home-service booking/repeat behavior."
+    values:
+      - "yes"
+      - "no"
+      - "unsure"
+
+  service_category:
+    description: "Primary home-service category mentioned in the post."
+    values:
+      - "salon_grooming"
+      - "home_cleaning"
+      - "ac_appliance_repair"
+      - "plumbing_electrical_carpentry"
+      - "pest_control_painting"
+      - "multiple_categories"
+      - "instahelp_excluded"
+      - "general_home_services"
+      - "unclear"
+
+  booking_outcome:
+    description: "How the referenced booking went (separates service failures from 'nothing went wrong' accounts)."
+    values:
+      - "completed_fine"
+      - "completed_with_friction"
+      - "service_failed_or_cancelled"
+      - "never_booked_uc"
+      - "unclear"
+
+  repeat_behavior:
+    description: "Customer's stated or clearly implied repeat-booking posture."
+    values:
+      - "active_repeater"
+      - "stopped_despite_fine_experience"
+      - "stopped_after_bad_experience"
+      - "single_category_or_rare_user"
+      - "switched_off_platform"
+      - "considering_or_asking"
+      - "unclear"
+
+  scope_controllability:
+    description: "Whether the core issue can be influenced by a consumer-side product (within brief constraints)."
+    values:
+      - "customer_side_product"
+      - "supply_partner_execution"
+      - "pricing_or_discount_only"
+      - "mixed"
+      - "unclear"
+
+  repeat_barriers_or_drivers:
+    description: "Up to 3 concrete reasons the customer did or did not book again."
+    multi_select: true
+    max_items: 3
+    values:
+      - "single_category_mental_model"
+      - "low_perceived_frequency_or_no_trigger"
+      - "prefers_local_provider_or_maid"
+      - "hired_uc_partner_directly_offline"
+      - "society_whatsapp_or_neighbour_referral"
+      - "cannot_rebook_same_trusted_pro"
+      - "unclear_scope_or_surprise_addons"
+      - "booking_or_slot_scheduling_friction"
+      - "no_post_service_followup_or_care"
+      - "trust_safety_or_home_privacy"
+      - "perceived_high_price_vs_local"
+      - "service_quality_or_partner_failure"
+      - "convenience_standardization_driver"
+      - "hygiene_and_professionalism_driver"
+      - "unclear"
+
+  external_alternative:
+    description: "Who or what the customer turned to outside Urban Company."
+    values:
+      - "local_technician_or_shop"
+      - "domestic_help_or_maid"
+      - "society_whatsapp_or_neighbour"
+      - "direct_uc_partner_offline"
+      - "family_or_diy"
+      - "competitor_app"
+      - "none_uses_uc"
+      - "unclear"
+
+  need_trigger:
+    description: "What triggered the customer to realize a home service was needed."
+    values:
+      - "emergency_breakdown"
+      - "seasonal_or_festival"
+      - "routine_maintenance"
+      - "special_occasion_or_guests"
+      - "moving_or_renovation"
+      - "unclear"
+
+  unmet_need:
+    description: "Short phrase (max 12 words) naming the unmet customer need, or 'unclear'."
+    type: "short_text"
+
+  emotion:
+    description: "Dominant emotion expressed in the post."
+    values:
+      - "delighted"
+      - "satisfied"
+      - "neutral_pragmatic"
+      - "confused_or_hesitant"
+      - "frustrated"
+      - "distrustful"
+      - "unclear"
+
+  severity:
+    description: "Strength of impact on repeat booking likelihood."
+    values:
+      - "1_low"
+      - "2_medium"
+      - "3_high"
+
+  segment_proxy:
+    description: "Any household, city, or tenure signal explicitly mentioned (otherwise 'unclear')."
+    values:
+      - "bachelor_or_shared_flat"
+      - "working_couple_or_nuclear_family"
+      - "family_with_elders_or_kids"
+      - "tier1_metro"
+      - "tier2_city"
+      - "first_time_user"
+      - "multi_booking_user"
+      - "unclear"
+
+  brief_questions:
+    description: "Which of the 8 discovery questions from the brief this post directly helps answer."
+    multi_select: true
+    values:
+      - "Q1_post_booking_expectations"
+      - "Q2_how_when_need_decided"
+      - "Q3_who_turned_to_next"
+      - "Q4_why_rebooked_or_not"
+      - "Q5_outside_app_alternatives"
+      - "Q6_returners_vs_non_returners"
+      - "Q7_segment_category_city_diff"
+      - "Q8_consistent_unmet_needs"
+
+  evidence_quote:
+    description: "One continuous verbatim span copied exactly from the post (no ellipses)."
+    type: "exact_quote"
