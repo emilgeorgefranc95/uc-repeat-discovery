@@ -1,5 +1,5 @@
 {
   "model": "BAAI/bge-small-en-v1.5",
   "dim": 384,
-  "count": 4925
+  "count": 4923
 }

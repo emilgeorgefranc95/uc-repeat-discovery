@@ -15,7 +15,9 @@ CONFIG_PATH = ROOT_DIR / "config.yaml"
 
 # Patterns for scrubbing PII before any text is written to disk
 _EMAIL_RE = re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b")
-_PHONE_RE = re.compile(r"(?<!\d)(?:\+?91[\s\-]?)?[6-9]\d{9}(?!\d)")
+_PHONE_RE = re.compile(
+    r"(?<!\d)(?:\+?91[\s\-]?)?(?:[6-9]\d{9}|[6-9]\d{4}[\s\-]\d{5}|[6-9]\d{2}[\s\-]\d{3}[\s\-]\d{4})(?!\d)"
+)
 _HANDLE_RE = re.compile(r"(?<!\w)(?:@[A-Za-z0-9_.-]{2,}|u/[A-Za-z0-9_-]{2,})")
 _WHITESPACE_RE = re.compile(r"\s+")
 

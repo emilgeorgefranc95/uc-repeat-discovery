@@ -37,7 +37,7 @@ import pandas as pd
 import requests
 from dotenv import load_dotenv
 
-from collect.utils import ROOT_DIR
+from collect.utils import ROOT_DIR, scrub_pii
 
 PROCESSED_DIR = ROOT_DIR / "data/processed"
 EXPORT_DIR = ROOT_DIR / "data/export"
@@ -122,6 +122,20 @@ def is_platform_staff_reply(text: str) -> bool:
     if low.startswith(("dear urban", "hi urban", "hello urban")):
         return False
     return bool(_STAFF_APOLOGY_RE.search(text) and _STAFF_CTA_RE.search(text))
+
+
+_SELF_PROMO_AD_RE = re.compile(
+    r"(msg\s+kijiye|message\s+kijiye|dm\s+kijiye|only\s+for\s+ladies.*msg|"
+    r"hum\s+kham\s+to\s+top-?notch|safai\s+wale\s+to\s+hum\s+bhii?\s+hai)",
+    re.I,
+)
+
+
+def is_self_promo_ad(text: str, source: str) -> bool:
+    """Exclude local vendor / competitor self-promotion comments caught in Stage 8 golden-set audit."""
+    if source != "youtube" or not text:
+        return False
+    return bool(_SELF_PROMO_AD_RE.search(text))
 
 
 def apply_audit_rule_fixes(rows: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], dict[str, int]]:
@@ -346,8 +360,8 @@ def _build_semantic_doc(row: Any) -> str:
     return " ".join(p.strip() for p in parts if p and p.strip())
 
 
-def compute_embeddings(df_rel: pd.DataFrame) -> None:
-    """Precompute normalized fastembed vectors over clean 600-char + plain-English tag docs."""
+def compute_embeddings(df_rel: pd.DataFrame, force_rebuild: bool = False, changed_ids: set[str] | None = None) -> None:
+    """Precompute normalized fastembed vectors (reusing unchanged cached vectors when safe)."""
     from fastembed import TextEmbedding
 
     if df_rel.empty:
@@ -355,14 +369,36 @@ def compute_embeddings(df_rel: pd.DataFrame) -> None:
         (EXPORT_DIR / "embed_ids.json").write_text("[]", encoding="utf-8")
         return
 
-    docs = [_build_semantic_doc(row) for row in df_rel.itertuples(index=False)]
     ids = df_rel["id"].tolist()
+    docs = [_build_semantic_doc(row) for row in df_rel.itertuples(index=False)]
+    changed_ids = changed_ids or set()
 
-    model = TextEmbedding(model_name=EMBED_MODEL_NAME)
-    vecs = np.asarray(list(model.embed(docs)), dtype=np.float32)
-    norms = np.linalg.norm(vecs, axis=1, keepdims=True)
-    norms = np.where(norms == 0, 1.0, norms)
-    vecs = (vecs / norms).astype(np.float16)
+    # Fast incremental path: reuse existing vectors for unchanged IDs when model matches
+    cached_vecs_path = EXPORT_DIR / "embeddings.npz"
+    cached_ids_path = EXPORT_DIR / "embed_ids.json"
+    cached_meta_path = EXPORT_DIR / "embed_meta.json"
+    cached_map: dict[str, np.ndarray] = {}
+    if not force_rebuild and cached_vecs_path.exists() and cached_ids_path.exists() and cached_meta_path.exists():
+        meta = json.loads(cached_meta_path.read_text(encoding="utf-8"))
+        if meta.get("model") == EMBED_MODEL_NAME and int(meta.get("dim", 0)) == EMBED_DIM:
+            old_vecs = np.load(cached_vecs_path)["embeddings"]
+            old_ids = json.loads(cached_ids_path.read_text(encoding="utf-8"))
+            if len(old_ids) == len(old_vecs):
+                cached_map = {oid: old_vecs[i] for i, oid in enumerate(old_ids) if oid not in changed_ids}
+
+    to_embed_idx = [i for i, rid in enumerate(ids) if rid not in cached_map]
+    new_vecs_map: dict[str, np.ndarray] = {}
+    if to_embed_idx:
+        model = TextEmbedding(model_name=EMBED_MODEL_NAME)
+        sub_docs = [docs[i] for i in to_embed_idx]
+        sub_vecs = np.asarray(list(model.embed(sub_docs)), dtype=np.float32)
+        norms = np.linalg.norm(sub_vecs, axis=1, keepdims=True)
+        norms = np.where(norms == 0, 1.0, norms)
+        sub_vecs = (sub_vecs / norms).astype(np.float16)
+        for pos, idx in enumerate(to_embed_idx):
+            new_vecs_map[ids[idx]] = sub_vecs[pos]
+
+    vecs = np.stack([cached_map[rid] if rid in cached_map else new_vecs_map[rid] for rid in ids]).astype(np.float16)
 
     np.savez_compressed(EXPORT_DIR / "embeddings.npz", embeddings=vecs)
     (EXPORT_DIR / "embed_ids.json").write_text(json.dumps(ids), encoding="utf-8")
@@ -387,8 +423,11 @@ def run_export(skip_embeddings: bool = False) -> dict[str, Any]:
     corrections = load_human_corrections()
     tagged_all, corrections_applied = apply_human_corrections(tagged_audited, corrections)
 
-    # Defensive platform staff reply exclusion check
+    # Defensive platform staff reply & YouTube self-promo ad exclusion check
     staff_excluded_export = 0
+    promo_excluded_export = 0
+    pii_scrubbed_export = 0
+    changed_ids: set[str] = set()
     ok_rows = []
     failed_count = 0
     for r in tagged_all:
@@ -396,19 +435,31 @@ def run_export(skip_embeddings: bool = False) -> dict[str, Any]:
             failed_count += 1
             continue
         src_rec = clean_map.get(r["id"], {})
-        if is_platform_staff_reply(str(src_rec.get("text") or "")):
+        raw_txt = str(src_rec.get("text") or "")
+        src_name = str(r.get("source") or src_rec.get("source") or "unknown")
+        if is_platform_staff_reply(raw_txt):
             staff_excluded_export += 1
+            continue
+        if is_self_promo_ad(raw_txt, src_name):
+            promo_excluded_export += 1
             continue
         ok_rows.append(r)
 
     # ONE consistent definition everywhere:
-    # tagged = tag_status == "ok" (excluding any platform staff replies)
+    # tagged = tag_status == "ok" (excluding any platform staff replies / self-promo ads)
     # relevant = tagged AND is_relevant == "yes" AND service_category != "instahelp_excluded"
     export_records: list[dict[str, Any]] = []
     for r in ok_rows:
         src_rec = clean_map.get(r["id"], {})
-        full_text = str(src_rec.get("text") or "")
-        ctx = str(src_rec.get("context") or "")
+        raw_text = str(src_rec.get("text") or "")
+        raw_ctx = str(src_rec.get("context") or "")
+        raw_quote = str(r.get("evidence_quote") or "")
+        full_text = scrub_pii(raw_text)
+        ctx = scrub_pii(raw_ctx)
+        clean_quote = scrub_pii(raw_quote)
+        if full_text != raw_text or ctx != raw_ctx or clean_quote != raw_quote:
+            pii_scrubbed_export += 1
+            changed_ids.add(r["id"])
         is_rel_final = (r.get("is_relevant") == "yes") and (r.get("service_category") != "instahelp_excluded")
 
         sev_str = str(r.get("severity") or "2_medium")
@@ -438,7 +489,7 @@ def run_export(skip_embeddings: bool = False) -> dict[str, Any]:
                 "severity_num": SEVERITY_NUM.get(sev_str, 2.0),
                 "segment_proxy": str(r.get("segment_proxy") or "unclear"),
                 "brief_questions": list(r.get("brief_questions") or []),
-                "evidence_quote": str(r.get("evidence_quote") or ""),
+                "evidence_quote": clean_quote,
                 "quote_status": str(r.get("quote_status") or "hidden_low_score"),
                 "quote_score": float(r.get("quote_score") or 0.0),
                 "grounding_flags": list(r.get("grounding_flags") or []),
@@ -446,7 +497,7 @@ def run_export(skip_embeddings: bool = False) -> dict[str, Any]:
                 "human_corrected": bool(r.get("human_corrected", False)),
                 "metric_branch": assign_metric_branch(r),
                 "voluntary_split": assign_voluntary_split(r),
-                # Public-safe anonymized snippet (already PII-scrubbed at Stage 1)
+                # Public-safe anonymized snippet (PII-scrubbed including spaced Indian phone numbers)
                 "text_snippet": full_text[:600],
                 "context_snippet": ctx[:200],
                 "subreddit": str(src_rec.get("subreddit") or ""),
@@ -458,7 +509,7 @@ def run_export(skip_embeddings: bool = False) -> dict[str, Any]:
 
     df_rel = df[df["is_relevant_final"]].copy() if not df.empty else df
     if not skip_embeddings:
-        compute_embeddings(df_rel)
+        compute_embeddings(df_rel, changed_ids=changed_ids)
 
     # Copy clean filings summary into data/export/
     filings_src = PROCESSED_DIR / "filings_insights.json"
@@ -510,6 +561,8 @@ def run_export(skip_embeddings: bool = False) -> dict[str, Any]:
             "instahelp_excluded_stage4": int(((df["is_relevant_raw"] == "yes") & (df["service_category"] == "instahelp_excluded")).sum()) if not df.empty else 0,
             "staff_replies_excluded_stage2": sum(1 for r in dropped_rows if "staff" in str(r.get("drop_reason", "")).lower()),
             "staff_replies_excluded_export": staff_excluded_export,
+            "self_promo_excluded_export": promo_excluded_export,
+            "pii_scrubbed_export": pii_scrubbed_export,
             "human_corrections_applied": corrections_applied,
         },
         "rule_fixes_applied": rule_fixes,

@@ -1205,7 +1205,12 @@ def render_page_validation(df_tagged: pd.DataFrame, summary: dict[str, Any]) -> 
     k3.metric("Rule & Human Fixes", f"{total_rule_fixes} / {hc_applied}", "rule fixes / CSV overrides")
     gs = summary.get("golden_set") or {}
     gs_lbl = f"{gs.get('overall_agreement_pct')}%" if gs.get("overall_agreement_pct") is not None else "Stage 8"
-    k4.metric("20-Item Blind Golden Set", gs_lbl, f"{gs.get('items_labelled', 0)} / 20 labelled")
+    gs_sub = (
+        f"{gs.get('items_labelled', 0)}/20 ({gs.get('overall_norm_agreement_pct')}% norm)"
+        if gs.get("overall_norm_agreement_pct") is not None
+        else f"{gs.get('items_labelled', 0)} / 20 labelled"
+    )
+    k4.metric("20-Item Blind Golden Set", gs_lbl, gs_sub)
 
     c1, c2 = st.columns(2)
     with c1:
@@ -1258,6 +1263,7 @@ def render_page_validation(df_tagged: pd.DataFrame, summary: dict[str, Any]) -> 
             {"Stage": "Stage 4 Tagger (v1→v2)", "Issue Caught in Audit": "Pilot v1 blanked 20/40 good posts as 'unclear' & failed 10/50 with severity='u'", "Fix Applied": "Forbade blanking fields, restricted severity to 1/2/3, added Reddit & chatbot examples", "Impact": "Validation 40/50 → 50/50 (0 fails); core % unclear 52% → 8%"},
             {"Stage": "Stage 4 Inter-Model", "Issue Caught in Audit": "gpt-oss-120b left brief_questions empty on 20/30 items (vs Qwen 6/30)", "Fix Applied": "Added mandatory 1–3 brief_questions rule before full parallel launch", "Impact": "0 empty brief_questions across all 5,110 production tagged items"},
             {"Stage": "Stage 6 Pre-Publish Audit", "Issue Caught in Audit": f"20-post & schema audit caught {rf_fine} 'stopped_despite_fine_experience' on failed/friction bookings, {rf_sup} 'customer_side_product' on pure supply barriers, and overly broad booking/scope buckets", "Fix Applied": f"Added deterministic rule fixes + sub-theme breakdown + defensive staff-reply filter ({staff_s2} excluded Stage 2, {staff_exp} at export)", "Impact": f"{total_rule_fixes} tags cleanly corrected; broad buckets unpacked into concrete product sub-themes"},
+            {"Stage": "Stage 8 Blind Golden Set", "Issue Caught in Audit": "20-item blind audit caught 3 spaced Indian phone numbers (+91 XXXXX XXXXX), 2 YouTube Hinglish self-promo ads, and AI over-guessing segment_proxy without explicit text evidence", "Fix Applied": "Expanded PII phone regex in collect/utils.py & pipeline/export.py; added YouTube self-promo ad filter; kept segment conclusions strictly proxy-based pending Part 3 interviews", "Impact": "0 phone leaks in public export; 2 YouTube ads removed; honest raw & codebook-normalized human-AI agreement published"},
         ]
     )
     st.dataframe(corrections_log, use_container_width=True, hide_index=True)
@@ -1274,12 +1280,51 @@ def render_page_validation(df_tagged: pd.DataFrame, summary: dict[str, Any]) -> 
         """
     )
 
-    st.subheader("Human Corrections (`data/manual/corrections.csv`) & 20-Item Golden Set")
+    st.subheader("Human Corrections (`data/manual/corrections.csv`) & 20-Item Blind Golden Set")
     hc = summary.get("human_corrections") or []
     if hc:
         st.dataframe(pd.DataFrame(hc), use_container_width=True, hide_index=True)
     else:
-        st.info("No human corrections uploaded yet (`data/manual/corrections.csv` will populate automatically in Stage 8 when `pipeline/review_export.py` and `pipeline/import_review.py` run).")
+        st.info("No human corrections uploaded yet (`data/manual/corrections.csv` populates when `pipeline/import_review.py` runs).")
+
+    st.subheader("20-Item Blind Golden Set Results (Human vs. AI Agreement)")
+    gs_fields = gs.get("field_agreement") or {}
+    if gs_fields and gs.get("items_labelled", 0) > 0:
+        gs_rows = []
+        for fld, meta in gs_fields.items():
+            if meta.get("agreement_pct") is not None:
+                gs_rows.append({"Field": fld, "Score Type": "Raw Blind Agreement %", "Agreement %": meta["agreement_pct"]})
+                if meta.get("norm_agreement_pct") is not None:
+                    gs_rows.append({"Field": fld, "Score Type": "Codebook-Normalized %", "Agreement %": meta["norm_agreement_pct"]})
+        gs_df = pd.DataFrame(gs_rows)
+        fig_gs = px.bar(
+            gs_df,
+            x="Agreement %",
+            y="Field",
+            color="Score Type",
+            barmode="group",
+            orientation="h",
+            text="Agreement %",
+            color_discrete_map={"Raw Blind Agreement %": CB_BLUE, "Codebook-Normalized %": CB_GREEN},
+            title=f"Blind Golden Set ({gs.get('items_labelled', 0)}/20): {gs.get('overall_agreement_pct')}% raw · {gs.get('overall_norm_agreement_pct')}% codebook-normalized",
+        )
+        fig_gs.update_traces(texttemplate="%{text:.1f}%", textposition="outside", cliponaxis=False)
+        fig_gs.update_layout(xaxis=dict(range=[0, 118]), height=360, margin=dict(l=10, r=40, t=50, b=10))
+        st.plotly_chart(fig_gs, use_container_width=True)
+        st.caption("Codebook-Normalized adjusts ONLY 5 Apple Numbers free-text category labels (e.g. 'AC_shifting' → 'ac_appliance_repair') and 1 shifted 'delighted' cell on Item #15; zero genuine human-vs-AI disagreements were altered.")
+
+        dis = gs.get("disagreements") or []
+        with st.expander(f"View All {len(dis)} Human vs. AI Disagreements", expanded=False):
+            if dis:
+                st.dataframe(
+                    pd.DataFrame(dis)[["item_no", "source", "field", "human", "ai", "post_excerpt", "human_note"]],
+                    use_container_width=True,
+                    hide_index=True,
+                )
+            else:
+                st.success("Zero disagreements across all labelled fields!")
+    else:
+        st.info("Blind labelling sheet generated at `data/review/golden_set_blind.xlsx` (git-ignored). Complete the 20 blind items and run `python -m pipeline.golden_set --score && python -m pipeline.export` to populate this section.")
 
 
 # ==============================================================================

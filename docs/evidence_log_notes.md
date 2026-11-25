@@ -247,3 +247,24 @@
 - **Platform Staff Reply Verification:** Stage 2 (`pipeline/clean.py`) excluded `1` official staff reply. Audited all `4,925` relevant posts — the `6` regex hits were all customer letters starting with *"Dear Urban Company Team..."* (0 false-positive drops). Added defensive brand-side `is_platform_staff_reply()` check in `pipeline/export.py` (`0` additional staff replies found).
 - **Human Corrections (`data/manual/corrections.csv`):** Created `data/manual/corrections.csv` with `9` verified field-level human overrides across `5` audited posts (e.g., partner lateness mis-tagged as `customer_side_product`, Diwali trial intent mis-tagged as `unclear_scope_or_surprise_addons`, summer AC inquiry mis-tagged as `booking_or_slot_scheduling_friction`), loaded automatically by `pipeline/export.py` and displayed on Page 8 (Validation & Limitations).
 - **Dashboard Consistency & Polish (`app/streamlit_app.py`):** Enforced one consistent `tagged` / `relevant` count across all 8 pages (including dynamic updates when `"Exclude curated Reddit"` is toggled), added explicit by-source splits directly inside every source-mix-dependent headline (Pages 1, 2, 3, 4, and 5), and collapsed all long expanders (`expanded=False`).
+
+---
+
+## Stage 8: 20-Item Blind Golden Set Agreement (`pipeline/golden_set.py`)
+
+### Decision 14 — Blind Human vs. AI Agreement (20/20 items labelled · Raw: 41.1% · Codebook-Normalized: 46.4%)
+- **Date:** 2026-11-25 22:07 UTC
+- **Sample composition:** {'reddit': 6, 'play_store': 7, 'app_store': 3, 'youtube': 4} · Hinglish/Hindi: 4 · Hard cases: 10.
+- **Field-by-field agreement (Raw vs. Codebook-Normalized for 5 Apple Numbers custom labels + 1 shifted cell):**
+  - `is_relevant` (`is_relevant`): **75.0% raw** (15/20 exact) · **75.0% codebook-normalized** (15/20)
+  - `anchor_category` (`service_category`): **50.0% raw** (8/16 exact) · **75.0% codebook-normalized** (12/16)
+  - `repeat_action` (`repeat_behavior`): **31.2% raw** (5/16 exact) · **31.2% codebook-normalized** (5/16)
+  - `non_repeat_barrier` (`repeat_barriers_or_drivers`): **25.0% raw** (4/16 overlap ≥1) · **25.0% codebook-normalized** (4/16)
+  - `stated_triggers (multi)` (`need_trigger`): **56.2% raw** (9/16 overlap ≥1) · **56.2% codebook-normalized** (9/16)
+  - `emotion` (`emotion`): **31.2% raw** (5/16 exact) · **37.5% codebook-normalized** (6/16)
+  - `customer_type` (`segment_proxy`): **18.8% raw** (3/16 exact) · **25.0% codebook-normalized** (4/16)
+- **Total raw disagreements logged:** `67` (full table in `data/processed/golden_set_results.json` and Page 8 Validation & Limitations).
+- **Concrete pipeline & AI bugs caught by the blind golden set and fixed immediately:**
+  1. **PII Phone-Number Scrubber Gap (Item #12):** Spaced Indian phone numbers (`+91 XXXXX XXXXX`) slipped past the unspaced 10-digit scrubber (`3` Reddit comments affected in export). Patched `_PHONE_RE` in `collect/utils.py` and added defensive `scrub_pii()` in `pipeline/export.py` (`0` phone numbers remaining in `data/export/posts.parquet`).
+  2. **YouTube Hinglish Self-Promo Ads (Items #6 & #11):** Local cleaning/beauty self-promo comments (`msg kijiye`, `safai wale to hum bhii hai`) passed as `is_relevant=yes`. Added `is_self_promo_ad()` exclusion in `pipeline/export.py` (`2/112` YouTube posts cleanly excluded).
+  3. **AI Over-Guessing `segment_proxy` / `repeat_behavior`:** Golden set proved AI occasionally infers `working_couple_or_nuclear_family` or `first_time_user` without explicit text evidence — reinforcing the methodological rule to validate all segment hypotheses via Part 3 primary user interviews.
